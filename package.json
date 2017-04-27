@@ -1,0 +1,57 @@
+{
+  "name": "ww-music",
+  "version": "0.0.1",
+  "description": "A simple, TypeScript audio instrument and midi playback module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/wwlib/ww-musisc.git"
+  },
+  "keywords": [
+    "music",
+    "midi",
+    "audio",
+    "instrument"
+  ],
+  "config": {
+    "watch": "src",
+    "app": "src/index.ts",
+    "lib": "lib/*.*"
+  },
+  "scripts": {
+    "test": "mocha",
+    "clean": "cross-conf-env rimraf npm_package_config_lib"
+  },
+  "browserify": {
+    "transform": []
+  },
+  "dependencies": {
+      "@types/node": "^7.0.5",
+      "ensureDir": "^1.0.6",
+      "find-root": "^1.0.0",
+      "fs-extra": "^2.0.0",
+      "webmidi": "^2.0.0-rc.5",
+      "midi-player-js": "wwlib/midiplayerjs",
+      "pie-ano": "^1.1.2",
+      "soundfont-player": "^0.10.5"
+  },
+  "devDependencies": {
+    "cross-conf-env": "latest",
+    "tsify": "latest",
+    "typescript": "^2.0.0",
+    "parallelshell": "latest",
+    "preprocessify": "latest",
+    "mapstraction": "latest",
+    "rimraf": "latest",
+    "watch": "latest",
+    "watchify": "latest",
+    "mocha": "~2.4.5"
+  },
+  "author": "Andrew Rapo <andrew@worthwhilegames.org> (http://worthwhilegames.org)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wwlib/ww-musisc/issues"
+  },
+  "homepage": "https://github.com/wwlib/ww-musisc#readme"
+}
