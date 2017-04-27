@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { EventEmitter } from "events";
 export declare class MidiToMediaPlayer extends EventEmitter {
     rootPath: string;
