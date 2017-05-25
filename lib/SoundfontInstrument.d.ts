@@ -5,5 +5,6 @@ export declare class SoundfontInstrument extends Instrument {
     initWithData(data: any): void;
     playMidiNote(noteNumber: number, velocity: number, startTime?: number): void;
     stopMidiNote(noteNumber: number, velocity: number): void;
+    stopAllNotes(): void;
     scheduleAllNoteEvents(startTime: number, events: any[], division: number, tempo: number): void;
 }

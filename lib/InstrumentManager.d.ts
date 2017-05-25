@@ -13,6 +13,7 @@ export declare class InstrumentManager {
     setupChannelMap(): void;
     playMidiNoteWithChannel(noteNumber: number, velocity: number, channel: number): void;
     stopMidiNoteWithChannel(noteNumber: number, velocity: number, channel: number): void;
+    stopAllNotes(): void;
     controlChangeWithChannel(channel: number, data: any): void;
     testPieAno(): void;
     setupToneToMidiMap(): void;

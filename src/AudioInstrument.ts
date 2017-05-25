@@ -128,6 +128,12 @@ export class AudioInstrument extends Instrument {
         }
     }
 
+    stopAllNotes(): void {
+        this.playingNoteMap.forEach((note: AudioNote, noteNumber: number) => {
+            this.stopMidiNote(noteNumber, 127);
+        });
+    }
+
     scheduleAllNoteEvents(startTime: number, events: any[], division: number, tempo: number): void {
         //console.log(`AudioInstrument: scheduleAllNoteEvents:`, events);
         events.forEach((event) => {

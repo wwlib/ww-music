@@ -135,6 +135,7 @@ export class MidiToMediaPlayer extends EventEmitter {
         clearInterval(this.scheduleIntervalId);
         this.scheduleIntervalId = null;
         this.midiPlayer.stop();
+        InstrumentManager.instance.stopAllNotes();
         console.log(`MidiToMediaPlayer: stop:`, this.midiPlayer.events);
     }
 

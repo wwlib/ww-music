@@ -17,5 +17,6 @@ export declare class AudioInstrument extends Instrument {
     limitMidiNote(noteNumber: number): number;
     playMidiNote(noteNumber: number, velocity: number, startTime?: number): void;
     stopMidiNote(noteNumber: number, velocity: number): void;
+    stopAllNotes(): void;
     scheduleAllNoteEvents(startTime: number, events: any[], division: number, tempo: number): void;
 }

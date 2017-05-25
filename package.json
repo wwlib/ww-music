@@ -21,6 +21,7 @@
   },
   "scripts": {
     "test": "mocha",
+    "build": "npm run clean; tsc",
     "clean": "cross-conf-env rimraf npm_package_config_lib"
   },
   "browserify": {
@@ -30,10 +31,10 @@
     "ensureDir": "^1.0.6",
     "find-root": "^1.0.0",
     "fs-extra": "^2.0.0",
-    "webmidi": "^2.0.0-rc.5",
     "midi-player-js": "wwlib/midiplayerjs",
     "pie-ano": "^1.1.2",
-    "soundfont-player": "^0.10.5"
+    "soundfont-player": "^0.10.5",
+    "webmidi": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "cross-conf-env": "latest",

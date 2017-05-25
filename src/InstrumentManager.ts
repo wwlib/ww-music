@@ -91,6 +91,14 @@ export class InstrumentManager {
         }
     }
 
+    stopAllNotes(): void {
+        this.channelMap.forEach((instrument: Instrument, channel: number) => {
+            if (instrument) {
+                instrument.stopAllNotes();
+            }
+        });
+    }
+
     controlChangeWithChannel(channel: number, data: any): void {
         console.log(`InstrumentManager: controlChangeWithChannel: channel: ${channel}, data: ${data.controllerNumber} ${data.value}`);
     }

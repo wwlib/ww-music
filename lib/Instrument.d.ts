@@ -9,5 +9,6 @@ export declare abstract class Instrument {
     abstract initWithData(data: any): void;
     abstract playMidiNote(noteNumber: number, velocity: number, startTime?: number): void;
     abstract stopMidiNote(noteNumber: number, velocity: number): void;
+    abstract stopAllNotes(): void;
     abstract scheduleAllNoteEvents(startTime: number, events: any[], division: number, tempo: number): void;
 }

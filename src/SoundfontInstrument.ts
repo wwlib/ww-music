@@ -47,6 +47,10 @@ export class SoundfontInstrument extends Instrument {
         }
     }
 
+    stopAllNotes(): void {
+
+    }
+
     scheduleAllNoteEvents(startTime: number, events: any[], division: number, tempo: number): void {
 
     }
