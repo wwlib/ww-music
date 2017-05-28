@@ -6,7 +6,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/wwlib/ww-musisc.git"
+    "url": "git+ssh://git@github.com/wwlib/ww-music.git"
   },
   "keywords": [
     "music",
@@ -51,7 +51,7 @@
   "author": "Andrew Rapo <andrew@worthwhilegames.org> (http://worthwhilegames.org)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/wwlib/ww-musisc/issues"
+    "url": "https://github.com/wwlib/ww-music/issues"
   },
-  "homepage": "https://github.com/wwlib/ww-musisc#readme"
+  "homepage": "https://github.com/wwlib/ww-music#readme"
 }
