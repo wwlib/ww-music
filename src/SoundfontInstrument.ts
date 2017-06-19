@@ -8,8 +8,8 @@ export class SoundfontInstrument extends Instrument {
 
     public soundfont: any;
 
-    constructor(audioContext: AudioContext, rootPath: string, data: any) {
-        super(audioContext, rootPath, data);
+    constructor(audioContext: AudioContext, masterVolumeGainNode: GainNode, rootPath: string, data: any) {
+        super(audioContext, masterVolumeGainNode,rootPath, data);
 
         let filePath: string = path.join(rootPath, 'audio/MusyngKite', data.soundFilename);
 

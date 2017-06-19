@@ -4,11 +4,13 @@ export abstract class Instrument {
     public name: string;
     public id: string;
     public audioContext: AudioContext;
+    public masterVolumeGainNode: GainNode;
     public rootPath: string;
     public playingNoteMap: Map<number, any>;
 
-    constructor(audioContext: AudioContext, rootPath: string, data: any) {
+    constructor(audioContext: AudioContext, masterVolumeGainNode: GainNode, rootPath: string, data: any) {
         this.audioContext = audioContext;
+        this.masterVolumeGainNode = masterVolumeGainNode;
         this.rootPath = rootPath;
         this.playingNoteMap = new Map<number, any>();
 

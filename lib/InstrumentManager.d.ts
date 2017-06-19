@@ -4,6 +4,7 @@ export declare class InstrumentManager {
     instrumentConfig: any[];
     instruments: Map<string, Instrument>;
     audioContext: AudioContext;
+    masterVolumeGainNode: GainNode;
     channelMap: Map<number, Instrument>;
     private static _instance;
     toneToMidiMap: Map<number, number>;
@@ -14,6 +15,7 @@ export declare class InstrumentManager {
     playMidiNoteWithChannel(noteNumber: number, velocity: number, channel: number): void;
     stopMidiNoteWithChannel(noteNumber: number, velocity: number, channel: number): void;
     stopAllNotes(): void;
+    setMasterVolume(volume: number): void;
     controlChangeWithChannel(channel: number, data: any): void;
     testPieAno(): void;
     setupToneToMidiMap(): void;

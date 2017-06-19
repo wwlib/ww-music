@@ -3,9 +3,10 @@ export declare abstract class Instrument {
     name: string;
     id: string;
     audioContext: AudioContext;
+    masterVolumeGainNode: GainNode;
     rootPath: string;
     playingNoteMap: Map<number, any>;
-    constructor(audioContext: AudioContext, rootPath: string, data: any);
+    constructor(audioContext: AudioContext, masterVolumeGainNode: GainNode, rootPath: string, data: any);
     abstract initWithData(data: any): void;
     abstract playMidiNote(noteNumber: number, velocity: number, startTime?: number): void;
     abstract stopMidiNote(noteNumber: number, velocity: number): void;

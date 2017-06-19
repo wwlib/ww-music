@@ -12,7 +12,7 @@ export declare class AudioInstrument extends Instrument {
     highestNoteNumber: number;
     decodedBuffer: any;
     ready: boolean;
-    constructor(audioContext: AudioContext, rootPath: string, data: any);
+    constructor(audioContext: AudioContext, masterVolumeGainNode: GainNode, rootPath: string, data: any);
     initWithData(data: any): void;
     limitMidiNote(noteNumber: number): number;
     playMidiNote(noteNumber: number, velocity: number, startTime?: number): void;

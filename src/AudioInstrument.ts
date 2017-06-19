@@ -23,8 +23,8 @@ export class AudioInstrument extends Instrument {
     public decodedBuffer: any;
     public ready: boolean;
 
-    constructor(audioContext: AudioContext, rootPath: string, data: any) {
-        super(audioContext, rootPath, data);
+    constructor(audioContext: AudioContext, masterVolumeGainNode: GainNode, rootPath: string, data: any) {
+        super(audioContext, masterVolumeGainNode, rootPath, data);
 
         let filePath: string = path.join(rootPath, 'audio/instruments', this.soundFilename);
         let fsBuffer = fs.readFileSync(filePath);
@@ -101,7 +101,7 @@ export class AudioInstrument extends Instrument {
 
                 note.bufferSource.connect(note.gainNode);
                 //note.gainNode.gain.exponentialRampToValueAtTime(1.0, this.audioContext.currentTime + 0.1);
-                note.gainNode.connect(this.audioContext.destination);
+                note.gainNode.connect(this.masterVolumeGainNode);
 
                 note.bufferSource.start(startTime, note.startTime, note.durationTime);
                 this.playingNoteMap.set(noteNumber, note);
@@ -122,7 +122,7 @@ export class AudioInstrument extends Instrument {
             //note.gainNode.gain.setValueAtTime(note.gainNode.gain.value, this.audioContext.currentTime);
             //note.connect(gainNode);
             note.gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.25);
-            //gainNode.connect(this.audioContext.destination);
+            //gainNode.connect(this.masterVolumeGainNode);
             note.bufferSource.stop(this.audioContext.currentTime + 0.25);
             this.playingNoteMap.set(noteNumber, null);
         }
@@ -147,7 +147,7 @@ export class AudioInstrument extends Instrument {
                     note.gainNode = this.audioContext.createGain();
                     note.gainNode.gain.value = event.velocity / 127; //1.0;
                     note.bufferSource.connect(note.gainNode);
-                    note.gainNode.connect(this.audioContext.destination);
+                    note.gainNode.connect(this.masterVolumeGainNode);
                     note.bufferSource.start(noteStartTime, note.startTime, note.durationTime);
                     this.playingNoteMap.set(event.noteNumber, note);
                 } else {

@@ -12,6 +12,7 @@ export class InstrumentManager {
     public instrumentConfig: any[];
     public instruments: Map<string, Instrument>;
     public audioContext: AudioContext;
+    public masterVolumeGainNode: GainNode;
 
     public channelMap: Map<number, Instrument>;
 
@@ -24,6 +25,9 @@ export class InstrumentManager {
         this.instruments = new Map<string, Instrument>();
         this.channelMap = new  Map<number, Instrument>();
         this.audioContext = new AudioContext();
+        this.masterVolumeGainNode = this.audioContext.createGain();
+        this.masterVolumeGainNode.gain.value = 1.0;
+        this.masterVolumeGainNode.connect(this.audioContext.destination);
         PieAnoManager.init();
         this.setupToneToMidiMap();
     }
@@ -42,10 +46,10 @@ export class InstrumentManager {
         this.instrumentConfig.forEach((instrumentData: any) => {
             if (instrumentData.enabled) {
                 if (instrumentData.instrumentClass == 'AudioInstrument') {
-                    let instrument: AudioInstrument = new AudioInstrument(this.audioContext, rootPath, instrumentData);
+                    let instrument: AudioInstrument = new AudioInstrument(this.audioContext, this.masterVolumeGainNode, rootPath, instrumentData);
                     this.instruments.set(instrument.id, instrument);
                 } else if (instrumentData.instrumentClass == 'SoundfontInstrument') {
-                    let instrument: SoundfontInstrument = new SoundfontInstrument(this.audioContext, rootPath, instrumentData);
+                    let instrument: SoundfontInstrument = new SoundfontInstrument(this.audioContext, this.masterVolumeGainNode, rootPath, instrumentData);
                     this.instruments.set(instrument.id, instrument);
                 }
             }
@@ -97,6 +101,12 @@ export class InstrumentManager {
                 instrument.stopAllNotes();
             }
         });
+    }
+
+    setMasterVolume(volume: number): void {
+        if ( (volume >= 0) && (volume <= 1.0) ) {
+            this.masterVolumeGainNode.gain.value = volume;
+        }
     }
 
     controlChangeWithChannel(channel: number, data: any): void {
