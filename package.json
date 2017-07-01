@@ -1,6 +1,6 @@
 {
   "name": "ww-music",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A simple, TypeScript audio instrument and midi playback module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
