@@ -45,12 +45,16 @@ export class InstrumentManager {
         this.instrumentConfig = instrumentConfig;
         this.instrumentConfig.forEach((instrumentData: any) => {
             if (instrumentData.enabled) {
+                let instrument: Instrument;
                 if (instrumentData.instrumentClass == 'AudioInstrument') {
-                    let instrument: AudioInstrument = new AudioInstrument(this.audioContext, this.masterVolumeGainNode, rootPath, instrumentData);
+                    instrument = new AudioInstrument(this.audioContext, this.masterVolumeGainNode, rootPath, instrumentData);
                     this.instruments.set(instrument.id, instrument);
                 } else if (instrumentData.instrumentClass == 'SoundfontInstrument') {
-                    let instrument: SoundfontInstrument = new SoundfontInstrument(this.audioContext, this.masterVolumeGainNode, rootPath, instrumentData);
+                    instrument = new SoundfontInstrument(this.audioContext, this.masterVolumeGainNode, rootPath, instrumentData);
                     this.instruments.set(instrument.id, instrument);
+                }
+                if (instrumentData.midiChannel) {
+                    this.channelMap.set(instrumentData.midiChannel, instrument);
                 }
             }
         });
@@ -59,22 +63,30 @@ export class InstrumentManager {
     }
 
     setupChannelMap(): void {
-        this.channelMap.set(1, this.instruments.get('audio_piano')); //.get("soundfont_piano"));
-        this.channelMap.set(2, this.instruments.get('audio_organ')); //.get("soundfont_pizzicato"));
-        this.channelMap.set(3, this.instruments.get('audio_lead')); //("soundfont_lead_sawtooth"));
-        this.channelMap.set(4, this.instruments.get("audio_strings"));
-        this.channelMap.set(5, this.instruments.get("audio_guitar"));
-        this.channelMap.set(6, this.instruments.get("audio_pizzicato"));
-        this.channelMap.set(7, this.instruments.get("audio_sax"));
-        this.channelMap.set(8, this.instruments.get("audio_horn"));
-        this.channelMap.set(9, this.instruments.get('audio_bass')); //("soundfont_synth_bass"));
-        this.channelMap.set(10, this.instruments.get("audio_gmkit"));
-        this.channelMap.set(11, this.instruments.get("audio_blocks"));
-        this.channelMap.set(12, this.instruments.get("audio_flute"));
-        this.channelMap.set(13, this.instruments.get("audio_marimba"));
-        this.channelMap.set(14, this.instruments.get('audio_oohs')); //("soundfont_oohs"));
-        // this.channelMap.set(15, this.instruments.get("soundfont_steel_drums"));
-        this.channelMap.set(15, this.instruments.get("audio_dtm"));
+        let defaultChannelMap: any[] = [
+            {channel: 1, intrumentId: 'audio_piano'},
+            {channel: 2, intrumentId: 'audio_organ'},
+            {channel: 3, intrumentId: 'audio_lead'},
+            {channel: 4, intrumentId: 'audio_strings'},
+            {channel: 5, intrumentId: 'audio_guitar'},
+            {channel: 6, intrumentId: 'audio_pizzicato'},
+            {channel: 7, intrumentId: 'audio_sax'},
+            {channel: 8, intrumentId: 'audio_horn'},
+            {channel: 9, intrumentId: 'audio_bass'},
+            {channel: 10, intrumentId: 'audio_gmkit'},
+            {channel: 11, intrumentId: 'audio_blocks'},
+            {channel: 12, intrumentId: 'audio_flute'},
+            {channel: 13, intrumentId: 'audio_marimba'},
+            {channel: 14, intrumentId: 'audio_oohs'},
+            {channel: 15, intrumentId: 'audio_dtm'},
+        ];
+
+        // Set midi channel instruments for channels that are note yet assigned by the instrumentConfig
+        defaultChannelMap.forEach(instrumentData => {
+            if (!this.channelMap.get(instrumentData.channel)) {
+                this.channelMap.set(instrumentData.channel, this.instruments.get(instrumentData.intrumentId));
+            }
+        });
     }
 
     playMidiNoteWithChannel(noteNumber: number, velocity: number, channel: number): void {
