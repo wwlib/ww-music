@@ -20,33 +20,31 @@
     "lib": "lib/*.*"
   },
   "scripts": {
-    "test": "mocha",
     "build": "npm run clean; tsc",
-    "clean": "cross-conf-env rimraf npm_package_config_lib"
+    "clean": "cross-conf-env rimraf npm_package_config_lib",
+    "test": "mocha"
   },
   "browserify": {
     "transform": []
   },
   "dependencies": {
     "ensureDir": "^1.0.6",
-    "find-root": "^1.0.0",
-    "fs-extra": "^2.0.0",
-    "midi-player-js": "wwlib/midiplayerjs",
+    "find-root": "^1.1.0",
+    "fs-extra": "^10.1.0",
+    "midi-player-js": "^2.0.16",
     "pie-ano": "^1.1.2",
-    "soundfont-player": "^0.10.5",
-    "webmidi": "^2.0.0-rc.5"
+    "soundfont-player": "^0.12.0",
+    "webmidi": "^3.0.20"
   },
   "devDependencies": {
     "cross-conf-env": "latest",
-    "tsify": "latest",
-    "typescript": "^2.0.0",
+    "mapstraction": "latest",
+    "mocha": "^10.0.0",
     "parallelshell": "latest",
     "preprocessify": "latest",
-    "mapstraction": "latest",
     "rimraf": "latest",
-    "watch": "latest",
-    "watchify": "latest",
-    "mocha": "~2.4.5"
+    "tsify": "latest",
+    "typescript": "^2.0.0"
   },
   "author": "Andrew Rapo <andrew@worthwhilegames.org> (http://worthwhilegames.org)",
   "license": "MIT",

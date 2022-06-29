@@ -5,19 +5,19 @@ var instrumentConfig = require('../data/instrument_config.json');
 describe('WwMusic', function() {
 	describe('#AudioInstrument', function () {
 		describe('#IntrumentConfigData', function () {
-			var bassData = instrumentConfig[14];
-			var noteData = bassData.notes[0];
-			it('midi note number should be 36', function () {
-				assert.equal(36, noteData.midi);
+			var pianoData = instrumentConfig[14];
+			var noteData = pianoData.notes[0];
+			it('midi note number should be 48', function () {
+				assert.equal(48, noteData.midi);
 			});
 		});
 		describe('#AudioNote()', function () {
-			var bassData = instrumentConfig[14];
-			var noteData = bassData.notes[0];
+			var pianoData = instrumentConfig[14];
+			var noteData = pianoData.notes[0];
 			console.log(AudioNote.AudioNote);
-			var note = new AudioNote(noteData, bassData.tempo, bassData.divisions, bassData.offsetInDivisions, bassData.fileOffset);
-			it('AudioNote note number should be 36', function () {
-				assert.equal(36, note.noteNumber);
+			var note = new AudioNote(noteData, pianoData.tempo, pianoData.divisions, pianoData.offsetInDivisions || 0, pianoData.fileOffset);
+			it('AudioNote note number should be 48', function () {
+				assert.equal(48, note.noteNumber);
 			});
 		});
 	});
