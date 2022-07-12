@@ -1,117 +1,97 @@
 import path = require('path');
-const findRoot = require('find-root');
 import { EventEmitter } from "events";
+import { AbstractInstrumentManager } from './AbstractInstrumentManager';
 import { InstrumentManager } from './InstrumentManager';
-import { AudioInstrument } from './AudioInstrument';
+
+/* MidiToMediaPlayer
+
+MidiToMediaPlayer uses instances of MidiPlayerJS to load, parse and play midi files
+
+midiPlayerForScheduling - is used to get midi event information and schedule it
+with the ww InstrumentManager
+
+midiPlayerForEvents - is used to generate real time midi events in sync with the
+InstrumentManager audio playback
+
+The 2 players run in parallel.
+*/
 
 const MidiPlayer = require('midi-player-js');
-const Soundfont = require('soundfont-player');
 
 export class MidiToMediaPlayer extends EventEmitter {
 
+    public instrumentManager: AbstractInstrumentManager
     public rootPath: string;
-    public midiPlayer: any;
+    public midiPlayerForScheduling: any;
+    public midiPlayerForEvents: any
     public callback: any;
     public fileLoaded: boolean;
-    // public playSpecifiedChannel: boolean;
-    // public specifiedChannel: number;
-
     public scheduleIntervalId: any;
     public scheduleTimeSlice: number;
     public scheduleStartTime: number;
-    public previousScheduleTime:  number;
+    public previousScheduleTime: number;
 
-    public externalTimeSource: any;
-    public robotInfo: any;
-
-    constructor(rootPath: string) {
+    constructor(rootPath: string, instrumentManager?: AbstractInstrumentManager) {
         super();
+        this.instrumentManager = instrumentManager || InstrumentManager.instance
         this.rootPath = rootPath;
         this.fileLoaded = false;
-        this.externalTimeSource = null;
-        // this.playSpecifiedChannel = false;
-        // this.specifiedChannel = undefined;
 
-        // Initialize player and register event handler
-        this.midiPlayer = new MidiPlayer.Player((event: any) => {
-            //console.log(`Event: ${event.name} ${event.noteName} ${event.noteNumber} ${event.channel}`);
+        // Initialize the midiPlayerForScheduling player
+        this.midiPlayerForScheduling = new MidiPlayer.Player()
+
+        // Initialize the midiPlayerForEvents player and register an event handler function
+        // Events are then emitted from MidiToMediaPlayer
+        this.midiPlayerForEvents = new MidiPlayer.Player((event: any) => {
+            // console.log(`WwMusic: MidiToMediaPlayer: midiPlayerForEvents:Event: ${event.name} ${event.noteName} ${event.noteNumber} ${event.channel}`);
             let noteNumber: number = event.noteNumber;
             let midiChannel: number = event.channel;
             let velocity: number = event.velocity;
             if (event.name === 'Note on') {
-                if (!this.isAnimationControl(noteNumber)) {
-                    // if ((this.specifiedChannel == 0) || !this.playSpecifiedChannel || (this.playSpecifiedChannel && (event.channel == this.specifiedChannel)) || event.channel == 11) {
-                    //     InstrumentManager.instance.playMidiNoteWithChannel(noteNumber, velocity, midiChannel);
-                    // }
+                if (this.isAnimationControl(noteNumber)) {
+                    this.emit('animation', noteNumber);
+                } else {
+                    // console.log('WwMusic: MidiToMediPlayer: emit note', event);
                     this.emit('note', event);
                 }
             } else if (event.name === 'Note off') {
-                // InstrumentManager.instance.stopMidiNoteWithChannel(noteNumber, velocity, midiChannel);
+                this.emit('note', event);
+            } else if (event.name === 'Marker') {
+                this.emit('marker', event);
             } else if (event.name === 'Lyric') {
                 this.emit('lyric', event);
             } else if (event.name === 'Text Event') {
                 this.emit('text', event);
             }
         });
-        if (this.midiPlayer) {
-            this.midiPlayer.on('endOfFile', () => {
-                // this.playSpecifiedChannel = false;
-                // this.specifiedChannel = undefined;
-                //this.removeAllListeners();
-                if (this.callback) {
-                    this.callback();
-                    this.callback = null;
-                }
-            });
-        }
-    }
-
-    setExternalTimeSource(source: any): void {
-        this.externalTimeSource = source;
-        if (this.midiPlayer) {
-            this.midiPlayer.setExternalTimeSource(source);
-        }
-    }
-
-    setMarkersToLyrics(value: boolean): void {
-        if (this.midiPlayer) {
-            this.midiPlayer.setMarkersToLyrics(true);
-        }
+        this.midiPlayerForEvents.on('endOfFile', () => {
+            this.emit('endOfFile')
+        });
     }
 
     isAnimationControl(noteNumber: number): boolean {
-        //console.log(`MidiToMediaPlayer: isAnimationControl: ${noteNumber}`)
         let result = false;
-        if (noteNumber <24 ) {
+        if (noteNumber < 24) {
             result = true;
-            this.emit('animation', noteNumber);
         }
-
         return result;
     }
 
     loadMidiFile(filename: string) {
         this.fileLoaded = false;
         let filePath: string = path.join(this.rootPath, 'midi', filename);
-        this.midiPlayer.loadFile(filePath);
+        this.midiPlayerForScheduling.loadFile(filePath);
+        this.midiPlayerForEvents.loadFile(filePath);
         this.fileLoaded = true;
     }
 
-    // playMidiFileChannel(startTime: number, channel: number, cb: any): void {
-    //     console.log(`MidiToMediaPlayer: playMidiFileChannel: ${channel}`);
-    //     // this.playSpecifiedChannel = true;
-    //     // this.specifiedChannel = channel;
-    //     this.playMidiFile(startTime, cb);
-    // }
-
     playMidiFile(startTime: number, cb: any): void {
-        // Load a MIDI file
         this.callback = cb;
         if (this.fileLoaded) {
-            this.midiPlayer.setStartTime(startTime);
-            this.midiPlayer.play();
+            this.midiPlayerForEvents.setStartTime(startTime);
+            this.midiPlayerForEvents.play();
         } else {
-            console.log(`MidiToMediaPlayer: playMidiFile: no file loaded`);
+            console.log(`WwMusic: MidiToMediaPlayer: playMidiFile: no file loaded`);
             if (cb) {
                 cb();
             }
@@ -119,51 +99,49 @@ export class MidiToMediaPlayer extends EventEmitter {
     }
 
     getCurrentScheduleTick() {
-        let currentTime: number = this.externalTimeSource ? this.externalTimeSource() : performance.now(); //new Date().getTime();
-        return Math.round((currentTime - this.scheduleStartTime) / 1000 * (this.midiPlayer.division * (this.midiPlayer.tempo / 60))) + this.midiPlayer.startTick;
+        let currentTime: number = new Date().getTime();
+        return Math.round((currentTime - this.scheduleStartTime) / 1000 * (this.midiPlayerForScheduling.division * (this.midiPlayerForScheduling.tempo / 60))) + this.midiPlayerForScheduling.startTick;
     }
 
     ticksToMilliseconds(ticks: number): number {
-        return Math.floor( (ticks / this.midiPlayer.division / this.midiPlayer.tempo * 60) * 1000);
+        return Math.floor((ticks / this.midiPlayerForScheduling.division / this.midiPlayerForScheduling.tempo * 60) * 1000);
     }
 
     millisecondsToTicks(milliseconds: number): number {
-        return (milliseconds / 1000) * (this.midiPlayer.division * (this.midiPlayer.tempo / 60));
+        return (milliseconds / 1000) * (this.midiPlayerForScheduling.division * (this.midiPlayerForScheduling.tempo / 60));
     }
 
     stop(): void {
         clearInterval(this.scheduleIntervalId);
         this.scheduleIntervalId = null;
-        this.midiPlayer.stop();
-        InstrumentManager.instance.stopAllNotes();
-        console.log(`MidiToMediaPlayer: stop:`, this.midiPlayer.events);
+        this.midiPlayerForEvents.stop();
+        this.instrumentManager.stopAllNotes();
+        console.log(`WwMusic: MidiToMediaPlayer: stop:`, this.midiPlayerForEvents.events);
     }
 
-    scheduleAllNoteEvents(startTime: number, robotInfo?: any, cb?: any): void {
-        //console.log(`MidiToMediaPlayer: scheduleAllNoteEvents:`);
-        this.robotInfo = robotInfo;
-        let currentTime: number = this.externalTimeSource ? this.externalTimeSource() :  performance.now(); //new Date().getTime();
+    scheduleAllNoteEvents(startTime: number, scheduleOptions?: any, cb?: any): void {
+        let currentTime: number = new Date().getTime();
         let startTimeOffset: number = startTime - currentTime;
-        let acCurrentTime: number = InstrumentManager.instance.audioContext.currentTime; //seconds
+        let acCurrentTime: number = this.instrumentManager.audioContext.currentTime; //seconds
         let acStartTime: number = acCurrentTime + (startTimeOffset / 1000);
-        console.log(`MidiToMediaPlayer: audioContext.currentTime: ${InstrumentManager.instance.audioContext.currentTime}`);
-        console.log(`MidiToMediaPlayer: current time: ${currentTime}`);
-        console.log(`MidiToMediaPlayer: target start time: ${startTime}`);
-        console.log(`MidiToMediaPlayer: time offset (to target): ${startTimeOffset}`);
-        console.log(`MidiToMediaPlayer: audioContext start time: ${acStartTime}`);
-        console.log(`MidiToMediaPlayer: Tempo: ${this.midiPlayer.tempo}`);
+
+        console.log(`WwMusic: MidiToMediaPlayer: audioContext.currentTime: ${this.instrumentManager.audioContext.currentTime}`)
+        console.log(`WwMusic: MidiToMediaPlayer: current time: ${currentTime}`);
+        console.log(`WwMusic: MidiToMediaPlayer: target start time: ${startTime}`);
+        console.log(`WwMusic: MidiToMediaPlayer: time offset (to target): ${startTimeOffset}`);
+        console.log(`WwMusic: MidiToMediaPlayer: audioContext start time: ${acStartTime}`);
+        console.log(`WwMusic: MidiToMediaPlayer: Tempo: ${this.midiPlayerForScheduling.tempo}`);
+        console.log(`WwMusic: MidiToMediaPlayer: scheduleOptions:`, scheduleOptions);
 
         this.scheduleStartTime = currentTime;
         this.previousScheduleTime = 0;
         this.scheduleTimeSlice = 500; //miliseconds
-        this.scheduleEvents(acStartTime);
+        this.scheduleEvents(acStartTime, scheduleOptions);
         this.scheduleIntervalId = setInterval(() => {
-            let scheduledTicks: number = this.scheduleEvents(acStartTime);
-            //let previousTicks: number = this.millisecondsToTicks(this.previousScheduleTime);
-            //console.log(`  this.midiPlayer.totalTicks: ${this.midiPlayer.totalTicks}, previousTicks: ${scheduledTicks}`);
-
-            if (scheduledTicks >= this.midiPlayer.totalTicks) {
-                console.log(`    done scheduling`);
+            let scheduledTicks: number = this.scheduleEvents(acStartTime, scheduleOptions);
+            this.emit('scheduling', { scheduledTicks, totalTicks: this.midiPlayerForScheduling.totalTicks })
+            if (scheduledTicks >= this.midiPlayerForScheduling.totalTicks) {
+                console.log(`WwMusic: MidiToMediaPlayer: done scheduling`);
                 clearInterval(this.scheduleIntervalId);
                 this.scheduleIntervalId = null;
                 if (cb) {
@@ -174,70 +152,64 @@ export class MidiToMediaPlayer extends EventEmitter {
 
     }
 
-    scheduleEvents(acStartTime: number): number {
-        let previousTicks: number = this.millisecondsToTicks(this.previousScheduleTime);
+    scheduleEvents(acStartTime: number, scheduleOptions?: any): number {
         let nextTicks: number = this.millisecondsToTicks(this.previousScheduleTime + this.scheduleTimeSlice * 2);
-        // console.log(`MidiToMediaPlayer: acStartTime: ${acStartTime}, previousTicks: ${previousTicks}`);
-        this.midiPlayer.events.forEach((trackEvents: any) => {
+        this.midiPlayerForScheduling.events.forEach((trackEvents: any) => {
             let eventsToSchedule: any[] = [];
             let nextEvent: any = trackEvents[0];
             while (nextEvent && (nextEvent.tick < nextTicks)) {
                 eventsToSchedule.push(trackEvents.shift());
                 nextEvent = trackEvents[0];
             }
-            let channelsToPlay: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
-            if (this.robotInfo) {
-                channelsToPlay = [];
-                let robotNumber: number = this.robotInfo.number;
-                let robotCount: number =  this.robotInfo.robotCount;
-                for (let i: number = 1; i<=16; i++) {
-                    if ( (((i % robotCount) + 1) == robotNumber) || (robotNumber == 0) ) { // play all channels in the simulator
-                        channelsToPlay.push(i);
-                    }
-                }
+            let channelsToPlay: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+            if (scheduleOptions && scheduleOptions.channelsToPlay) {
+                channelsToPlay = scheduleOptions.channelsToPlay;
             }
-
-            InstrumentManager.instance.scheduleAllNoteEvents(acStartTime, eventsToSchedule, this.midiPlayer.division, this.midiPlayer.tempo, channelsToPlay);
+            this.instrumentManager.scheduleAllNoteEvents(acStartTime, eventsToSchedule, this.midiPlayerForScheduling.division, this.midiPlayerForScheduling.tempo, channelsToPlay)
         });
         this.previousScheduleTime += this.scheduleTimeSlice;
         return nextTicks;
     }
 
     onSocketMidiCommand(command: any): void {
-        //console.log(`MidiToMediaPlayer: onSocketMidiMessage: `, command);
         switch (command.data.type) {
             case 'noteon':
-                if (!this.isAnimationControl(command.data.noteNumber)) {
-                    InstrumentManager.instance.playMidiNoteWithChannel(command.data.noteNumber, command.data.velocity, command.data.channel);
+                if (this.isAnimationControl(command.data.noteNumber)) {
+                    this.emit('animation', command.data.noteNumber);
+                } else {
+                    this.instrumentManager.playMidiNoteWithChannel(command.data.noteNumber, command.data.velocity, command.data.channel)
                 }
                 break;
             case 'noteoff':
-                InstrumentManager.instance.stopMidiNoteWithChannel(command.data.noteNumber, command.data.velocity, command.data.channel);
+                this.instrumentManager.stopMidiNoteWithChannel(command.data.noteNumber, command.data.velocity, command.data.channel)
                 break;
             case 'controlchange':
-                InstrumentManager.instance.controlChangeWithChannel(command.data.channel, command.data);
+                this.instrumentManager.controlChangeWithChannel(command.data.channel, command.data)
                 break;
-            }
+        }
     }
 
     click(): void {
-        InstrumentManager.instance.playMidiNoteWithChannel(60, 127, 11);
+        this.instrumentManager.playMidiNoteWithChannel(60, 127, 11)
     }
 
     dataToMelody(data: any, timeInterval?: number): void {
-        console.log(`MidiToMediaPlayer: dataToMelody: `, data);
+        console.log(`WwMusic: MidiToMediaPlayer: dataToMelody: `, data);
         if (typeof data == 'string') {
             let tones: number[] = [];
-            for (var i = 0; i < data.length; ++i)
-            {
+            for (var i = 0; i < data.length; ++i) {
                 let charCode = data.charCodeAt(i);
                 tones.push((charCode - 25) % 23); // subtracting 25 aligns A with middle C (60)
             }
-            InstrumentManager.instance.playTonesWithInstrument(tones, 'audio_dtm', timeInterval);
+            this.instrumentManager.playTonesWithInstrument(tones, 'audio_dtm', timeInterval)
         }
     }
 
     dispose(): void {
-        // TODO
+        if (this.scheduleIntervalId) {
+            clearInterval(this.scheduleIntervalId)
+            this.scheduleIntervalId = null
+        }
+        this.removeAllListeners()
     }
 }

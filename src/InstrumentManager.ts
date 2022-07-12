@@ -1,12 +1,11 @@
 import { Instrument } from './Instrument';
 import { AudioInstrument } from './AudioInstrument';
 import { SoundfontInstrument } from './SoundfontInstrument';
-import { PieAnoManager } from './PieAnoManager';
-
+import { AbstractInstrumentManager } from './AbstractInstrumentManager';
 
 const Soundfont = require('soundfont-player');
 
-export class InstrumentManager {
+export class InstrumentManager extends AbstractInstrumentManager {
 
     public rootPath: string;
     public instrumentConfig: any[];
@@ -21,14 +20,13 @@ export class InstrumentManager {
     public toneToMidiMap: Map<number, number>;
 
     constructor() {
-        console.log(`InstrumentManager: constuctor:`);
+        super()
         this.instruments = new Map<string, Instrument>();
         this.channelMap = new  Map<number, Instrument>();
         this.audioContext = new AudioContext();
         this.masterVolumeGainNode = this.audioContext.createGain();
         this.masterVolumeGainNode.gain.value = 1.0;
         this.masterVolumeGainNode.connect(this.audioContext.destination);
-        PieAnoManager.init();
         this.setupToneToMidiMap();
     }
 
@@ -125,10 +123,6 @@ export class InstrumentManager {
         console.log(`InstrumentManager: controlChangeWithChannel: channel: ${channel}, data: ${data.controllerNumber} ${data.value}`);
     }
 
-    testPieAno(): void {
-        PieAnoManager.test();
-    }
-
     setupToneToMidiMap(): void {
         this.toneToMidiMap = new Map<number, number>();
 
@@ -196,22 +190,23 @@ export class InstrumentManager {
     }
 
     scheduleAllNoteEvents(startTime: number, events: any[], division: number, tempo: number, channels?: number[]): void {
-        // console.log(`InstrumentManager: scheduleAllNoteEvents:`);
+        // inspect the events to see which channel this track is using
         let trackChannel: number = 1;
         events.some((event: any) => {
             if (event.channel) {
                 trackChannel = event.channel;
-                // console.log(`  found track channel: ${trackChannel}`);
                 return true;
             }
         });
 
-        // play channels in the channels list
+        // schedule this track's events if they are for any channel spcified in the channels list
         if (!channels || (channels.some(x => x == trackChannel)) ) {
             let instrument = this.channelMap.get(trackChannel);
             if (instrument) {
                 instrument.scheduleAllNoteEvents(startTime, events, division, tempo);
             }
+        } else {
+            // console.log('skipping: not scheduling notes for channel:', trackChannel);
         }
     }
 }

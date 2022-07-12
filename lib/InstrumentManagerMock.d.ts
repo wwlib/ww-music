@@ -1,16 +1,9 @@
-import { Instrument } from './Instrument';
-import { AbstractInstrumentManager } from './AbstractInstrumentManager';
-export declare class InstrumentManager extends AbstractInstrumentManager {
-    rootPath: string;
-    instrumentConfig: any[];
-    instruments: Map<string, Instrument>;
-    audioContext: AudioContext;
-    masterVolumeGainNode: GainNode;
-    channelMap: Map<number, Instrument>;
+import { AbstractInstrumentManager, AudioContextMock } from "./AbstractInstrumentManager";
+export declare class InstrumentManagerMock extends AbstractInstrumentManager {
     private static _instance;
-    toneToMidiMap: Map<number, number>;
+    audioContext: AudioContextMock;
     constructor();
-    static readonly instance: InstrumentManager;
+    static readonly instance: InstrumentManagerMock;
     init(rootPath: string, instrumentConfig: any[]): void;
     setupChannelMap(): void;
     playMidiNoteWithChannel(noteNumber: number, velocity: number, channel: number): void;

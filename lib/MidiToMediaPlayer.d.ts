@@ -1,18 +1,17 @@
 import { EventEmitter } from "events";
+import { AbstractInstrumentManager } from './AbstractInstrumentManager';
 export declare class MidiToMediaPlayer extends EventEmitter {
+    instrumentManager: AbstractInstrumentManager;
     rootPath: string;
-    midiPlayer: any;
+    midiPlayerForScheduling: any;
+    midiPlayerForEvents: any;
     callback: any;
     fileLoaded: boolean;
     scheduleIntervalId: any;
     scheduleTimeSlice: number;
     scheduleStartTime: number;
     previousScheduleTime: number;
-    externalTimeSource: any;
-    robotInfo: any;
-    constructor(rootPath: string);
-    setExternalTimeSource(source: any): void;
-    setMarkersToLyrics(value: boolean): void;
+    constructor(rootPath: string, instrumentManager?: AbstractInstrumentManager);
     isAnimationControl(noteNumber: number): boolean;
     loadMidiFile(filename: string): void;
     playMidiFile(startTime: number, cb: any): void;
@@ -20,8 +19,8 @@ export declare class MidiToMediaPlayer extends EventEmitter {
     ticksToMilliseconds(ticks: number): number;
     millisecondsToTicks(milliseconds: number): number;
     stop(): void;
-    scheduleAllNoteEvents(startTime: number, robotInfo?: any, cb?: any): void;
-    scheduleEvents(acStartTime: number): number;
+    scheduleAllNoteEvents(startTime: number, scheduleOptions?: any, cb?: any): void;
+    scheduleEvents(acStartTime: number, scheduleOptions?: any): number;
     onSocketMidiCommand(command: any): void;
     click(): void;
     dataToMelody(data: any, timeInterval?: number): void;

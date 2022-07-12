@@ -615,7 +615,7 @@
 			{ "midi":"99", "duration":"1" }
 		]
 	},
-	{ "enabled": true, "midiChannel": 15, "id":"audio_dtm", "name":"jibo dtm", "tempo":"120", "divisions":"1", "fileOffset":"0.051", "instrumentClass":"AudioInstrument", "soundFilename":"JiboDTM_C3_120_4_40_st.mp3",
+	{ "enabled": true, "midiChannel": 15, "id":"audio_dtm2", "name":"dtm2", "tempo":"120", "divisions":"1", "fileOffset":"0.051", "instrumentClass":"AudioInstrument", "soundFilename":"DTM2_C3_120_4_40_st.mp3",
 		"notes": [
 			{ "midi":"60", "name":"C4", "offset":"0", "duration":"1" },
 			{ "midi":"61", "name":"C#4", "offset":"1", "duration":"1" },

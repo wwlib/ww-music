@@ -1,5 +1,9 @@
 import { AudioInstrument } from './AudioInstrument';
 import { AudioNote } from './AudioNote';
+import { Instrument } from './Instrument';
+import { AbstractInstrumentManager } from './AbstractInstrumentManager';
 import { InstrumentManager } from './InstrumentManager';
+import { InstrumentManagerMock } from './InstrumentManagerMock';
 import { MidiToMediaPlayer } from './MidiToMediaPlayer';
-export { AudioInstrument, AudioNote, InstrumentManager, MidiToMediaPlayer };
+import { SoundfontInstrument } from './SoundfontInstrument';
+export { AudioInstrument, AudioNote, Instrument, AbstractInstrumentManager, InstrumentManager, InstrumentManagerMock, MidiToMediaPlayer, SoundfontInstrument };
