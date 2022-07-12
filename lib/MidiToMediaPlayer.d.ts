@@ -5,7 +5,6 @@ export declare class MidiToMediaPlayer extends EventEmitter {
     rootPath: string;
     midiPlayerForScheduling: any;
     midiPlayerForEvents: any;
-    callback: any;
     fileLoaded: boolean;
     scheduleIntervalId: any;
     scheduleTimeSlice: number;
@@ -14,7 +13,7 @@ export declare class MidiToMediaPlayer extends EventEmitter {
     constructor(rootPath: string, instrumentManager?: AbstractInstrumentManager);
     isAnimationControl(noteNumber: number): boolean;
     loadMidiFile(filename: string): void;
-    playMidiFile(startTime: number, cb: any): void;
+    playMidiFile(startTime: number): void;
     getCurrentScheduleTick(): any;
     ticksToMilliseconds(ticks: number): number;
     millisecondsToTicks(milliseconds: number): number;

@@ -24,7 +24,6 @@ export class MidiToMediaPlayer extends EventEmitter {
     public rootPath: string;
     public midiPlayerForScheduling: any;
     public midiPlayerForEvents: any
-    public callback: any;
     public fileLoaded: boolean;
     public scheduleIntervalId: any;
     public scheduleTimeSlice: number;
@@ -85,16 +84,12 @@ export class MidiToMediaPlayer extends EventEmitter {
         this.fileLoaded = true;
     }
 
-    playMidiFile(startTime: number, cb: any): void {
-        this.callback = cb;
+    playMidiFile(startTime: number): void {
         if (this.fileLoaded) {
             this.midiPlayerForEvents.setStartTime(startTime);
             this.midiPlayerForEvents.play();
         } else {
             console.log(`WwMusic: MidiToMediaPlayer: playMidiFile: no file loaded`);
-            if (cb) {
-                cb();
-            }
         }
     }
 
