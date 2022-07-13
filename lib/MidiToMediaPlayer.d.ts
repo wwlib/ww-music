@@ -11,6 +11,7 @@ export declare class MidiToMediaPlayer extends EventEmitter {
     scheduleStartTime: number;
     previousScheduleTime: number;
     constructor(rootPath: string, instrumentManager?: AbstractInstrumentManager);
+    setStartAtTime(startAtTime: number): void;
     isAnimationControl(noteNumber: number): boolean;
     loadMidiFile(filename: string): void;
     playMidiFile(startTime: number): void;

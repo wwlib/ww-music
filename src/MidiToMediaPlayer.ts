@@ -68,6 +68,15 @@ export class MidiToMediaPlayer extends EventEmitter {
         });
     }
 
+    setStartAtTime(startAtTime: number) {
+        if (this.midiPlayerForEvents) {
+            this.midiPlayerForEvents.setStartTime(startAtTime)
+        }
+        if (this.midiPlayerForScheduling) {
+            this.midiPlayerForScheduling.setStartTime(startAtTime)
+        }
+    }
+
     isAnimationControl(noteNumber: number): boolean {
         let result = false;
         if (noteNumber < 24) {
@@ -119,6 +128,7 @@ export class MidiToMediaPlayer extends EventEmitter {
         let startTimeOffset: number = startTime - currentTime;
         let acCurrentTime: number = this.instrumentManager.audioContext.currentTime; //seconds
         let acStartTime: number = acCurrentTime + (startTimeOffset / 1000);
+        this.midiPlayerForScheduling.setStartTime(startTime);
 
         console.log(`WwMusic: MidiToMediaPlayer: audioContext.currentTime: ${this.instrumentManager.audioContext.currentTime}`)
         console.log(`WwMusic: MidiToMediaPlayer: current time: ${currentTime}`);
