@@ -13,13 +13,15 @@ export declare class AudioContextClock {
     private _localInitTime;
     private _localStartTime;
     private _localStartTimeOffset;
-    constructor(audioContextTime: number, localStartTime: number);
+    private _debug;
+    constructor(audioContextTime: number, localStartTime: number, debug?: boolean);
     readonly data: AudioContextClockData;
     getAcTimeWithLocalTime(localTime: number): number;
     readonly calculatedAudioContextCurrentTime: number;
     init(audioContextTime: number): AudioContextClockData;
     updateLocalStartTime(newLocalStartTime: number): void;
     readonly calculatedAcStartTime: number;
+    log(...args: any[]): void;
 }
 export declare class MidiToMediaPlayer extends EventEmitter {
     instrumentManager: AbstractInstrumentManager;
@@ -32,7 +34,9 @@ export declare class MidiToMediaPlayer extends EventEmitter {
     scheduleStartTime: number;
     previousScheduleTime: number;
     private _acClock;
+    private _debug;
     constructor(rootPath: string, instrumentManager?: AbstractInstrumentManager);
+    debug: boolean;
     setStartAtTime(startAtTime: number): void;
     isAnimationControl(noteNumber: number): boolean;
     loadMidiFile(filename: string): void;
@@ -46,5 +50,6 @@ export declare class MidiToMediaPlayer extends EventEmitter {
     onSocketMidiCommand(command: any): void;
     click(): void;
     dataToMelody(data: any, timeInterval?: number): void;
+    log(...args: any[]): void;
     dispose(): void;
 }

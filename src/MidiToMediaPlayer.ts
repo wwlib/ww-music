@@ -33,10 +33,12 @@ export class AudioContextClock {
     private _localInitTime: number = 0 // milliseconds
     private _localStartTime: number = 0
     private _localStartTimeOffset: number = 0
+    private _debug: boolean = false
 
-    constructor(audioContextTime: number, localStartTime: number) {
+    constructor(audioContextTime: number, localStartTime: number, debug: boolean = false) {
         this._localStartTime = localStartTime
-        console.log(`AudioContextClock: constructor: _localStartTime: ${this._localStartTime}`)
+        this._debug = debug
+        this.log(`AudioContextClock: constructor: _localStartTime: ${this._localStartTime}`)
         this.init(audioContextTime)
     }
 
@@ -68,11 +70,17 @@ export class AudioContextClock {
 
     updateLocalStartTime(newLocalStartTime: number) {
         this._localStartTimeOffset = newLocalStartTime - this._localStartTime
-        console.log(`AudioContextClock: updateLocalStartTime: newLocalStartTime: ${newLocalStartTime}, _localStartTimeOffset: ${this._localStartTimeOffset}`)
+        this.log(`AudioContextClock: updateLocalStartTime: newLocalStartTime: ${newLocalStartTime}, _localStartTimeOffset: ${this._localStartTimeOffset}`)
     }
 
     get calculatedAcStartTime(): number {
         return this.getAcTimeWithLocalTime(this._localStartTime + this._localStartTimeOffset)
+    }
+
+    log(...args) {
+        if (this._debug) {
+            console.log(...args)
+        }
     }
 }
 
@@ -89,6 +97,7 @@ export class MidiToMediaPlayer extends EventEmitter {
     public previousScheduleTime: number;
 
     private _acClock: AudioContextClock | undefined
+    private _debug: boolean = false
 
     constructor(rootPath: string, instrumentManager?: AbstractInstrumentManager) {
         super();
@@ -126,6 +135,10 @@ export class MidiToMediaPlayer extends EventEmitter {
         });
     }
 
+    set debug(value: boolean) {
+        this._debug = value
+    }
+
     setStartAtTime(startAtTime: number) {
         if (this.midiPlayerForEvents) {
             this.midiPlayerForEvents.setStartTime(startAtTime)
@@ -135,8 +148,8 @@ export class MidiToMediaPlayer extends EventEmitter {
         }
         if (this._acClock) {
             this._acClock.updateLocalStartTime(startAtTime)
-            console.log(`updating acClock local start time: ${startAtTime}`)
-            console.log(JSON.stringify(this._acClock.data, null, 2))
+            this.log(`updating acClock local start time: ${startAtTime}`)
+            this.log(JSON.stringify(this._acClock.data, null, 2))
         }
     }
 
@@ -161,7 +174,7 @@ export class MidiToMediaPlayer extends EventEmitter {
             this.midiPlayerForEvents.setStartTime(localStartTime);
             this.midiPlayerForEvents.play();
         } else {
-            console.log(`WwMusic: MidiToMediaPlayer: playMidiFile: no file loaded`);
+            this.log(`WwMusic: MidiToMediaPlayer: playMidiFile: no file loaded`);
         }
     }
 
@@ -183,21 +196,21 @@ export class MidiToMediaPlayer extends EventEmitter {
         this.scheduleIntervalId = null;
         this.midiPlayerForEvents.stop();
         this.instrumentManager.stopAllNotes();
-        console.log(`WwMusic: MidiToMediaPlayer: stop:`, this.midiPlayerForEvents.events);
+        this.log(`WwMusic: MidiToMediaPlayer: stop:`, this.midiPlayerForEvents.events);
     }
 
     scheduleAllNoteEvents(localStartTime: number, scheduleOptions?: any, cb?: any): void {
-        this._acClock = new AudioContextClock(this.instrumentManager.audioContext.currentTime, localStartTime)
+        this._acClock = new AudioContextClock(this.instrumentManager.audioContext.currentTime, localStartTime, this._debug)
         let currentTime: number = this._acClock.data.localInitTimeMilliseconds
         
         this.midiPlayerForScheduling.setStartTime(localStartTime);
 
-        console.log(`WwMusic: MidiToMediaPlayer: acClock.data: ${JSON.stringify(this._acClock.data, null, 2)}`)
-        console.log(`WwMusic: MidiToMediaPlayer: current time: ${currentTime}`);
-        console.log(`WwMusic: MidiToMediaPlayer: target local start time: ${localStartTime}`);
-        console.log(`WwMusic: MidiToMediaPlayer: calculated audioContext start time: ${this._acClock.calculatedAcStartTime}`);
-        console.log(`WwMusic: MidiToMediaPlayer: Tempo: ${this.midiPlayerForScheduling.tempo}`);
-        console.log(`WwMusic: MidiToMediaPlayer: scheduleOptions:`, scheduleOptions);
+        this.log(`WwMusic: MidiToMediaPlayer: acClock.data: ${JSON.stringify(this._acClock.data, null, 2)}`)
+        this.log(`WwMusic: MidiToMediaPlayer: current time: ${currentTime}`);
+        this.log(`WwMusic: MidiToMediaPlayer: target local start time: ${localStartTime}`);
+        this.log(`WwMusic: MidiToMediaPlayer: calculated audioContext start time: ${this._acClock.calculatedAcStartTime}`);
+        this.log(`WwMusic: MidiToMediaPlayer: Tempo: ${this.midiPlayerForScheduling.tempo}`);
+        this.log(`WwMusic: MidiToMediaPlayer: scheduleOptions:`, scheduleOptions);
 
         this.scheduleStartTime = currentTime;
         this.previousScheduleTime = 0;
@@ -207,7 +220,7 @@ export class MidiToMediaPlayer extends EventEmitter {
             let scheduledTicks: number = this.scheduleEvents(this._acClock.calculatedAcStartTime, scheduleOptions);
             this.emit('scheduling', { scheduledTicks, totalTicks: this.midiPlayerForScheduling.totalTicks })
             if (scheduledTicks >= this.midiPlayerForScheduling.totalTicks) {
-                console.log(`WwMusic: MidiToMediaPlayer: done scheduling`);
+                this.log(`WwMusic: MidiToMediaPlayer: done scheduling`);
                 clearInterval(this.scheduleIntervalId);
                 this.scheduleIntervalId = null;
                 if (cb) {
@@ -260,7 +273,7 @@ export class MidiToMediaPlayer extends EventEmitter {
     }
 
     dataToMelody(data: any, timeInterval?: number): void {
-        console.log(`WwMusic: MidiToMediaPlayer: dataToMelody: `, data);
+        this.log(`WwMusic: MidiToMediaPlayer: dataToMelody: `, data);
         if (typeof data == 'string') {
             let tones: number[] = [];
             for (var i = 0; i < data.length; ++i) {
@@ -268,6 +281,13 @@ export class MidiToMediaPlayer extends EventEmitter {
                 tones.push((charCode - 25) % 23); // subtracting 25 aligns A with middle C (60)
             }
             this.instrumentManager.playTonesWithInstrument(tones, 'audio_dtm', timeInterval)
+        }
+    }
+
+
+    log(...args) {
+        if (this._debug) {
+            console.log(...args)
         }
     }
 

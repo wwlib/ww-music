@@ -26,9 +26,8 @@ describe('WwMusic', function() {
 	describe('AudioContextClock', function() {
 		describe('#Time Calculations 1', function() {
 			const fakeAudioContextCurrentTime = 30.123
-			const acClock = new AudioContextClock(fakeAudioContextCurrentTime)
-			const localInitTime = acClock.data.localInitTimeMilliseconds
-			acClock.setLocalStartTime(localInitTime)
+			const localInitTime = new Date().getTime()
+			const acClock = new AudioContextClock(fakeAudioContextCurrentTime, localInitTime)
 			console.log(acClock.data)
 			it('audioContextInitTimeSeconds should be initilized correctly', function() {
 				assert.equal(acClock.data.audioContextInitTimeSeconds, fakeAudioContextCurrentTime)
@@ -39,9 +38,8 @@ describe('WwMusic', function() {
 		})
 		describe('#Time Calculations: change local start time', function() {
 			const fakeAudioContextCurrentTime = 30.123
-			const acClock = new AudioContextClock(fakeAudioContextCurrentTime)
-			const localInitTime = acClock.data.localInitTimeMilliseconds
-			acClock.setLocalStartTime(localInitTime + 1000)
+			const localInitTime = new Date().getTime()
+			const acClock = new AudioContextClock(fakeAudioContextCurrentTime, localInitTime + 1000)
 			console.log(acClock.data)
 			it('calculatedAcStartTime should equal fakeAudioContextCurrentTime + 1sec', function() {
 				assert.equal(acClock.calculatedAcStartTime, fakeAudioContextCurrentTime + 1)
@@ -49,9 +47,8 @@ describe('WwMusic', function() {
 		})
 		describe('#Time Calculations: update local start time', function() {
 			const fakeAudioContextCurrentTime = 30.123
-			const acClock = new AudioContextClock(fakeAudioContextCurrentTime)
-			const localInitTime = acClock.data.localInitTimeMilliseconds
-			acClock.setLocalStartTime(localInitTime + 1000)
+			const localInitTime = new Date().getTime()
+			const acClock = new AudioContextClock(fakeAudioContextCurrentTime, localInitTime)
 			acClock.updateLocalStartTime(localInitTime + 1000 - 50)
 			console.log(acClock.data)
 			it('calculatedAcStartTime should equal fakeAudioContextCurrentTime + 1sec - 0.050sec', function() {

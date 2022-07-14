@@ -6,6 +6,7 @@ const { MidiToMediaPlayer, InstrumentManagerMock } = require('../lib');
 const instrumentManagerMock = InstrumentManagerMock.instance
 const rootPath = findRoot()
 const midiToMediaPlayer = new MidiToMediaPlayer(rootPath, instrumentManagerMock)
+midiToMediaPlayer.debug = true
 const midifile = 'twinkle_twinkle_3_chan.mid'
 let startAtTime = new Date().getTime() + 1000
 const scheduleOptions = {
