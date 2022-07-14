@@ -1,5 +1,6 @@
 var assert = require('assert');
 var AudioNote = require('../lib/AudioNote').AudioNote;
+const { AudioContextClock } = require('../lib')
 var instrumentConfig = require('../data/instrument_config.json');
 
 describe('WwMusic', function() {
@@ -21,4 +22,41 @@ describe('WwMusic', function() {
 			});
 		});
 	});
+
+	describe('AudioContextClock', function() {
+		describe('#Time Calculations 1', function() {
+			const fakeAudioContextCurrentTime = 30.123
+			const acClock = new AudioContextClock(fakeAudioContextCurrentTime)
+			const localInitTime = acClock.data.localInitTimeMilliseconds
+			acClock.setLocalStartTime(localInitTime)
+			console.log(acClock.data)
+			it('audioContextInitTimeSeconds should be initilized correctly', function() {
+				assert.equal(acClock.data.audioContextInitTimeSeconds, fakeAudioContextCurrentTime)
+			})
+			it('calculatedAcStartTime should equal fakeAudioContextCurrentTime', function() {
+				assert.equal(acClock.calculatedAcStartTime, fakeAudioContextCurrentTime)
+			})
+		})
+		describe('#Time Calculations: change local start time', function() {
+			const fakeAudioContextCurrentTime = 30.123
+			const acClock = new AudioContextClock(fakeAudioContextCurrentTime)
+			const localInitTime = acClock.data.localInitTimeMilliseconds
+			acClock.setLocalStartTime(localInitTime + 1000)
+			console.log(acClock.data)
+			it('calculatedAcStartTime should equal fakeAudioContextCurrentTime + 1sec', function() {
+				assert.equal(acClock.calculatedAcStartTime, fakeAudioContextCurrentTime + 1)
+			})
+		})
+		describe('#Time Calculations: update local start time', function() {
+			const fakeAudioContextCurrentTime = 30.123
+			const acClock = new AudioContextClock(fakeAudioContextCurrentTime)
+			const localInitTime = acClock.data.localInitTimeMilliseconds
+			acClock.setLocalStartTime(localInitTime + 1000)
+			acClock.updateLocalStartTime(localInitTime + 1000 - 50)
+			console.log(acClock.data)
+			it('calculatedAcStartTime should equal fakeAudioContextCurrentTime + 1sec - 0.050sec', function() {
+				assert.equal(acClock.calculatedAcStartTime, fakeAudioContextCurrentTime + 1 - 0.050)
+			})
+		})
+	})
 });
