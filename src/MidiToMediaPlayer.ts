@@ -25,6 +25,8 @@ export interface AudioContextClockData {
     localStartTimeMilliseconds: number
     localStartTimeOffsetMilliseconds: number
     calculatedAcStartTimeSeconds: number
+    calculatedAcElapsedTimeSeconds: number
+    calculatedAcCurrentTimeSeconds: number
 }
 
 export class AudioContextClock {
@@ -49,8 +51,14 @@ export class AudioContextClock {
             localInitTimeMilliseconds: this._localInitTime,
             localStartTimeMilliseconds: this._localStartTime,
             localStartTimeOffsetMilliseconds: this._localStartTimeOffset,
-            calculatedAcStartTimeSeconds: this.calculatedAcStartTime
+            calculatedAcStartTimeSeconds: this.calculatedAcStartTime,
+            calculatedAcElapsedTimeSeconds: this.calculatedAcElapsedTime,
+            calculatedAcCurrentTimeSeconds: this.calculatedAcCurrentTime,
         }
+    }
+
+    get localStartTimeOffset(): number {
+        return this._localStartTimeOffset
     }
 
     getAcTimeWithLocalTime(localTime: number): number {
@@ -75,6 +83,16 @@ export class AudioContextClock {
 
     get calculatedAcStartTime(): number {
         return this.getAcTimeWithLocalTime(this._localStartTime + this._localStartTimeOffset)
+    }
+
+    get calculatedAcCurrentTime(): number {
+        return ( (new Date().getTime() - this._localInitTime) / 1000) + this._audioContextInitTime
+    }
+
+    get calculatedAcElapsedTime(): number {
+        const acStartTime = this.calculatedAcStartTime
+        const acCurrentTime = this.calculatedAcCurrentTime
+        return acCurrentTime - acStartTime
     }
 
     log(...args) {
@@ -137,6 +155,10 @@ export class MidiToMediaPlayer extends EventEmitter {
 
     set debug(value: boolean) {
         this._debug = value
+    }
+
+    get acClock(): AudioContextClock {
+        return this._acClock
     }
 
     setStartAtTime(startAtTime: number) {
@@ -203,14 +225,18 @@ export class MidiToMediaPlayer extends EventEmitter {
         this._acClock = new AudioContextClock(this.instrumentManager.audioContext.currentTime, localStartTime, this._debug)
         let currentTime: number = this._acClock.data.localInitTimeMilliseconds
         
-        this.midiPlayerForScheduling.setStartTime(localStartTime);
+        this.midiPlayerForScheduling.setStartTime(localStartTime)
 
         this.log(`WwMusic: MidiToMediaPlayer: acClock.data: ${JSON.stringify(this._acClock.data, null, 2)}`)
         this.log(`WwMusic: MidiToMediaPlayer: current time: ${currentTime}`);
-        this.log(`WwMusic: MidiToMediaPlayer: target local start time: ${localStartTime}`);
-        this.log(`WwMusic: MidiToMediaPlayer: calculated audioContext start time: ${this._acClock.calculatedAcStartTime}`);
-        this.log(`WwMusic: MidiToMediaPlayer: Tempo: ${this.midiPlayerForScheduling.tempo}`);
-        this.log(`WwMusic: MidiToMediaPlayer: scheduleOptions:`, scheduleOptions);
+        this.log(`WwMusic: MidiToMediaPlayer: Tempo: ${this.midiPlayerForScheduling.tempo}`)
+        this.log(`WwMusic: MidiToMediaPlayer: scheduleOptions:`, scheduleOptions)
+
+        this.log(`WwMusic: MidiToMediaPlayer: localStartTime: ${localStartTime}`)
+        this.log(`WwMusic: MidiToMediaPlayer: acStartTime: ${this._acClock.calculatedAcStartTime}, offset: ${this._acClock.localStartTimeOffset}`)
+        const acElapsedTime = this.instrumentManager.audioContext.currentTime - this._acClock.calculatedAcStartTime
+        this.log(`WwMusic: MidiToMediaPlayer: acCurrentTime:`, this._acClock.calculatedAcCurrentTime, this.instrumentManager.audioContext.currentTime)
+        this.log(`WwMusic: MidiToMediaPlayer: acElapsedTime:`, acElapsedTime, this._acClock.calculatedAcElapsedTime)
 
         this.scheduleStartTime = currentTime;
         this.previousScheduleTime = 0;
@@ -219,6 +245,10 @@ export class MidiToMediaPlayer extends EventEmitter {
         this.scheduleIntervalId = setInterval(() => {
             let scheduledTicks: number = this.scheduleEvents(this._acClock.calculatedAcStartTime, scheduleOptions);
             this.emit('scheduling', { scheduledTicks, totalTicks: this.midiPlayerForScheduling.totalTicks })
+            this.log(`WwMusic: MidiToMediaPlayer: acCurrentTime:`, this._acClock.calculatedAcCurrentTime, this.instrumentManager.audioContext.currentTime, this.instrumentManager.audioContext.currentTime - this._acClock.calculatedAcCurrentTime);
+            const acElapsedTime = this.instrumentManager.audioContext.currentTime - this._acClock.calculatedAcStartTime
+            this.log(`WwMusic: MidiToMediaPlayer: acElapsedTime:`, acElapsedTime, this._acClock.calculatedAcElapsedTime, this._acClock.calculatedAcElapsedTime - acElapsedTime)
+            this.log(`WwMusic: MidiToMediaPlayer: acStartTime: ${this._acClock.calculatedAcStartTime}, offset: ${this._acClock.localStartTimeOffset}`)
             if (scheduledTicks >= this.midiPlayerForScheduling.totalTicks) {
                 this.log(`WwMusic: MidiToMediaPlayer: done scheduling`);
                 clearInterval(this.scheduleIntervalId);

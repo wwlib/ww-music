@@ -7,6 +7,8 @@ export interface AudioContextClockData {
     localStartTimeMilliseconds: number;
     localStartTimeOffsetMilliseconds: number;
     calculatedAcStartTimeSeconds: number;
+    calculatedAcElapsedTimeSeconds: number;
+    calculatedAcCurrentTimeSeconds: number;
 }
 export declare class AudioContextClock {
     private _audioContextInitTime;
@@ -16,11 +18,14 @@ export declare class AudioContextClock {
     private _debug;
     constructor(audioContextTime: number, localStartTime: number, debug?: boolean);
     readonly data: AudioContextClockData;
+    readonly localStartTimeOffset: number;
     getAcTimeWithLocalTime(localTime: number): number;
     readonly calculatedAudioContextCurrentTime: number;
     init(audioContextTime: number): AudioContextClockData;
     updateLocalStartTime(newLocalStartTime: number): void;
     readonly calculatedAcStartTime: number;
+    readonly calculatedAcCurrentTime: number;
+    readonly calculatedAcElapsedTime: number;
     log(...args: any[]): void;
 }
 export declare class MidiToMediaPlayer extends EventEmitter {
@@ -37,6 +42,7 @@ export declare class MidiToMediaPlayer extends EventEmitter {
     private _debug;
     constructor(rootPath: string, instrumentManager?: AbstractInstrumentManager);
     debug: boolean;
+    readonly acClock: AudioContextClock;
     setStartAtTime(startAtTime: number): void;
     isAnimationControl(noteNumber: number): boolean;
     loadMidiFile(filename: string): void;
